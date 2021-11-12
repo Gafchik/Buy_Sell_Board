@@ -77,7 +77,7 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account
 
             // кастомное поле
             [Required]
-            [DataType(DataType.Text)]// тип данных кастомного поля 
+            [DataType(DataType.PhoneNumber)]// тип данных кастомного поля 
             [Display(Name = "PhoneNumber")]// название на view
             public string PhoneNumber { get; set; }
 

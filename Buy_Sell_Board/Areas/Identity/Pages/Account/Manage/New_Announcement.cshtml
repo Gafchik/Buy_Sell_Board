@@ -1,25 +1,81 @@
 ﻿@page
 @model Buy_Sell_Board.Areas.Identity.Pages.Account.Manage.New_AnnouncementModel
+@using Buy_Sell_Board.Data
+@using Buy_Sell_Board.Models.Announcement
 @{
     ViewData["Title"] = "NewProduct";
 }
 
-<h1>New product page</h1>
-<form enctype="multipart/form-data" method="post">
-    <h5>New Product :</h5>
-    <p>Category :</p>
-    <input type="text" name="product.category" />
-    <p>Salesman :</p>
-    <input type="text" name="product.salesman" />
-    <p>Product :</p>
-    <input type="text" name="product.product" />
-    <p>Model :</p>
-    <input type="text" name="product.model" />
-    <p>Description :</p>
-    <input type="text" name="product.description" />
-    <p>Price :</p>
-    <input type="number" step="any" name="product.price" />
-    <p>Img :</p>
-    <input type="file" name="uploadedFile" />
-    <input type="submit" value="Отправить" />
-</form>
+
+
+
+
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <h4>Create a new account.</h4>
+            <hr />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Input.Category_Id"></label>
+               
+                <select name="authorId" asp-items="Model.CategoryActionsList" asp-for="Input.Category_Id"></select>
+             
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Input.Product_Name"></label>
+                <input asp-for="Input.Product_Name" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.Product_Model"></label>
+                <input asp-for="Input.Product_Model" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.Description"></label>
+                <input asp-for="Input.Description" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.Price"></label>
+                <input asp-for="Input.Price" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
+    <div class="col-md-6 col-md-offset-2">
+        <section>
+            <h4>Use another service to register.</h4>
+            <hr />
+            @{
+                if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                {
+                    <div>
+                        <p>
+                            There are no external authentication services configured. See <a href="https://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
+                            for details on setting up this ASP.NET application to support logging in via external services.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                        <div>
+                            <p>
+                                @foreach (var provider in Model.ExternalLogins)
+                                {
+                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                                }
+                            </p>
+                        </div>
+                    </form>
+                }
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

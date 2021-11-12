@@ -35,6 +35,8 @@ namespace Buy_Sell_Board
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDatabaseDeveloperPageExceptionFilter();
             //services.AddIdentity
+            //добаляем синглтон нашего дб контекста
+           // services.AddSingleton<ApplicationDbContext>(); не работает
 
             services.AddIdentity<AppUser, IdentityRole>(opts => {
                 opts.Password.RequiredLength = 5;   // минимальная длина

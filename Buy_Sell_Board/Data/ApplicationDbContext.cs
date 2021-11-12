@@ -33,8 +33,6 @@ namespace Buy_Sell_Board.Data
             builder.Entity<AppUser>()
                 .Property(e => e.City)
                 .HasMaxLength(50);
-
-
         }
     }
 }
