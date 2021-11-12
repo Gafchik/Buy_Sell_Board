@@ -70,11 +70,17 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account
             public string City { get; set; }
 
             // кастомное поле
-            [Required]
-           
+            [Required]          
             [DataType(DataType.Text)]// тип данных кастомного поля 
             [Display(Name = "Region")]// название на view
             public string Region { get; set; }
+
+            // кастомное поле
+            [Required]
+            [DataType(DataType.Text)]// тип данных кастомного поля 
+            [Display(Name = "PhoneNumber")]// название на view
+            public string PhoneNumber { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
@@ -113,6 +119,7 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account
                         Date_of_Birth = Input.Date_of_Birth,
                         Region = Input.Region,
                         City = Input.City,
+                        PhoneNumber = Input.PhoneNumber
 
                     };
                 var result = await _userManager.CreateAsync(user, Input.Password);
