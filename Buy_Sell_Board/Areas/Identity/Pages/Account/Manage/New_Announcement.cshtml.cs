@@ -1,17 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Buy_Sell_Board.Data;
 using Buy_Sell_Board.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
 {
@@ -40,12 +42,12 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             Input = new InputModel();// обязательно выделять память для выпадающих списков
             // конструктор выпадающих списков (Коллекция откуда брать, Имя параметра Ключ, Значение, Куда совать выбраный value)
             CategoryActionsList = new SelectList(_db.Categorys, "Id", "Name", Input.CategorySelectedValue);
-           
+
 
 
         }
 
-      
+
         [BindProperty] // флаг котороый говорт что это свойство модель биндиться к вью
         public InputModel Input { get; set; } // сам проп бинда 
         public string ReturnUrl { get; set; }
@@ -102,11 +104,16 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         }
 
         [HttpPost] // RequestVerificationToken
-        public  void OnPostSubCut()
-        {            
-            SubcategoryActionsList = new SelectList(_db.Subcategorys.ToList()
-               .FindAll(i => i.Category_Id == int.Parse(CategoryActionsList.SelectedValue.ToString())),
-               "Id", "Name", Input.SubcategorySelectedValue);
+        public JsonResult OnPostSubCut([FromBody] JsonElement json)
+        {
+            // парсим входящий json в строку
+            var jsonStr = System.Text.Json.JsonSerializer.Deserialize<object>(json.GetRawText()).ToString();
+            //строку парсим в динамик
+            dynamic data = JObject.Parse(jsonStr);
+            // с динамик в нужный тип данных
+            var SellCat = int.Parse(data.SelectedValue.Value);
+            // делакм выборку с БД и в json возвращаем
+            return new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == SellCat));
         }
     }
 }

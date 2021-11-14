@@ -2,6 +2,7 @@ using Buy_Sell_Board.Data;
 using Buy_Sell_Board.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
@@ -72,6 +73,13 @@ namespace Buy_Sell_Board
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+           /* app.Use((context, next) =>
+            {
+                // включает буферизацию
+                context.Request.EnableBuffering();
+                return next();
+            });*/
 
             app.UseEndpoints(endpoints =>
             {
