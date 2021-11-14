@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Buy_Sell_Board.Data;
 using Buy_Sell_Board.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -21,7 +22,9 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<ChangePasswordModel> _logger;
         public ApplicationDbContext _db;
-        public List<SelectListItem> CategoryActionsList { get; set; }// категори€ выпадающий список
+        public SelectList CategoryActionsList { get; set; }// категори€ выпадающий список
+        public SelectList SubcategoryActionsList { get; set; }// подкатегори€ выпадающий список
+
 
         // коструктор со всем добром которое выше
         public New_AnnouncementModel(
@@ -34,10 +37,15 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            CategoryActionsList = new List<SelectListItem>();
+            Input = new InputModel();// об€зательно выдел€ть пам€ть дл€ выпадающих списков
+            // конструктор выпадающих списков ( оллекци€ откуда брать, »м€ параметра  люч, «начение,  уда совать выбраный value)
+            CategoryActionsList = new SelectList(_db.Categorys, "Id", "Name", Input.CategorySelectedValue);
+           
+
+
         }
 
-
+      
         [BindProperty] // флаг котороый говорт что это свойство модель биндитьс€ к вью
         public InputModel Input { get; set; } // сам проп бинда 
         public string ReturnUrl { get; set; }
@@ -49,36 +57,13 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         // класс нашей импут модели
         public class InputModel
         {
-                   
-          
-            public int Subcategory_Id { get; set; } // подкатегори€ айди
             [Required]
-            [DataType(DataType.Text)]// тип данных кастомного пол€ 
             [Display(Name = "Category")]
-            public string Category_Id { get; set; }     // категори€ айди   
+            public int CategorySelectedValue { get; set; }   // категори€ айди  
 
-
-            
-
-            //[Required]
-            //[Display(Name = "Subcategory")]
-            //public List<SelectListItem> SubcategoryActionsList // категори€ выпадающий список
-            //{
-            //    get 
-            //    {
-
-            //        if (SubcategoryActionsList != null)// если лист уже создан то сингл тон
-            //            SubcategoryActionsList.Clear();
-            //        else // если не создан то выдил€ем пам€ть
-            //            SubcategoryActionsList = new List<SelectListItem>();
-            //        //заполн€ем значени€ми с Ѕƒ
-            //        ApplicationDbContext.Subcategorys.Select(i => i.Category_Id == CategoryActionsList.).ToList()
-            //    .ForEach(i => SubcategoryActionsList.Add(new SelectListItem
-            //    { Text = i.Name, Value = i.Id.ToString() }));
-            //    }
-            //    set { CategoryActionsList = value; }
-            //}
-
+            [Required]
+            [Display(Name = "Subcategory")]
+            public int SubcategorySelectedValue { get; set; }   // подкатегори€ айди  
 
             [Required]
             [DataType(DataType.Text)]
@@ -95,31 +80,33 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             [Display(Name = "Description")]
             public string Description { get; set; }
 
-            [Required]          
+            [Required]
             [Display(Name = "Price")]
             public float Price { get; set; }
-           
+
         }
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            _db.Categorys.ToList().ForEach(i => CategoryActionsList.Add(new SelectListItem
-            {
-                Text = i.Name,
-                Value = i.Id.ToString()
-            }));
-
 
         }
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
             var q = Input;
             return Page();
+        }
+
+        [HttpPost] // RequestVerificationToken
+        public  void OnPostSubCut()
+        {            
+            SubcategoryActionsList = new SelectList(_db.Subcategorys.ToList()
+               .FindAll(i => i.Category_Id == int.Parse(CategoryActionsList.SelectedValue.ToString())),
+               "Id", "Name", Input.SubcategorySelectedValue);
         }
     }
 }

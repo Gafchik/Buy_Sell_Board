@@ -47,7 +47,8 @@ namespace Buy_Sell_Board
             }).AddDefaultTokenProviders()
                 .AddDefaultUI() // добавление дефолтного UI
             .AddEntityFrameworkStores<ApplicationDbContext>();
-            
+            services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");// аякс пост запрос токен поддтвержнеие
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
