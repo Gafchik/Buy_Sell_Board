@@ -6,7 +6,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Buy_Sell_Board.Data;
 using Buy_Sell_Board.Models;
+using Buy_Sell_Board.Models.Announcement;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -26,6 +29,7 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         public ApplicationDbContext _db;
         public SelectList CategoryActionsList { get; set; }// категория выпадающий список
         public SelectList SubcategoryActionsList { get; set; }// подкатегория выпадающий список
+        private readonly IWebHostEnvironment _appEnvironment; // интерфейс для окружения
 
 
         // коструктор со всем добром которое выше
@@ -33,8 +37,10 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ApplicationDbContext db,
+             IWebHostEnvironment appEnvironment,
             ILogger<ChangePasswordModel> logger)
         {
+            _appEnvironment = appEnvironment;
             _db = db;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -42,9 +48,6 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             Input = new InputModel();// обязательно выделять память для выпадающих списков
             // конструктор выпадающих списков (Коллекция откуда брать, Имя параметра Ключ, Значение, Куда совать выбраный value)
             CategoryActionsList = new SelectList(_db.Categorys, "Id", "Name", Input.CategorySelectedValue);
-
-
-
         }
 
 
@@ -56,9 +59,82 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         [TempData]  //хз
         public string StatusMessage { get; set; }
 
+
+
+        public async Task OnGetAsync(string returnUrl = null)
+        {
+            ReturnUrl = returnUrl;
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+        }
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        {
+            returnUrl ??= Url.Content("~/");
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            if (ModelState.IsValid)
+            {
+                _db.Announcements.Add(new Announcement
+                {
+                    User_Id = _userManager.GetUserId(User),
+                    Category_Id = Input.CategorySelectedValue,
+                    Subcategory_Id = Input.SubcategorySelectedValue,
+                    Product_Name = Input.Product_Name,
+                    Product_Model = Input.Product_Model,
+                    Description = Input.Description,
+                    Price = Input.Price
+                });
+                _db.SaveChanges();
+                int new_Announcement_Id = _db.Announcements.ToList().Find(i =>
+                       i.User_Id == _userManager.GetUserId(User) &&
+                       i.Category_Id == Input.CategorySelectedValue &&
+                       i.Subcategory_Id == Input.SubcategorySelectedValue &&
+                       i.Product_Name == Input.Product_Name &&
+                       i.Product_Model == Input.Product_Model &&
+                       i.Description == Input.Description &&
+                       i.Price == Input.Price).Id;
+
+                #region file         
+                foreach (var img in Input.Files)
+                {
+                    // путь к папке Image
+                    string path = "/Image/" + img.FileName;
+                    // сохраняем файл в папку Files в каталоге wwwroot
+                    using (var fileStream = new FileStream(_appEnvironment.WebRootPath + path, FileMode.Create))
+                        await img.CopyToAsync(fileStream);
+                    // ~ нам говорит о том что мы попадаем в папку wwwroot
+                    //product.img = "~" + path;
+                    _db.Images.Add(new Image
+                    {
+                        Path = "~" + path,
+                        Announcement_Id = new_Announcement_Id
+                    });
+                }
+                #endregion
+                await _db.SaveChangesAsync();
+            }
+            return Page();
+        }
+        #region Аякс ЗАпросы
+        [HttpGet] // загружает подкатегориии при первом гет запросе с помощью  аякса
+        public JsonResult OnGetFirstSubCat([FromBody] JsonElement json) => new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == 1));
+
+        [HttpPost] // RequestVerificationToken метод обновления подкатегорий
+        public JsonResult OnPostSubCut([FromBody] JsonElement json)
+        {
+            // парсим входящий json в строку
+            var jsonStr = System.Text.Json.JsonSerializer.Deserialize<object>(json.GetRawText()).ToString();
+            //строку парсим в динамик
+            dynamic data = JObject.Parse(jsonStr);
+            // с динамик в нужный тип данных
+            var SellCat = int.Parse(data.SelectedValue.Value);
+            // делакм выборку с БД и в json возвращаем
+            return new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == SellCat));
+        }
+        #endregion
         // класс нашей импут модели
         public class InputModel
         {
+
             [Required]
             [Display(Name = "Category")]
             public int CategorySelectedValue { get; set; }   // категория айди  
@@ -86,34 +162,9 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             [Display(Name = "Price")]
             public float Price { get; set; }
 
-        }
-
-        public async Task OnGetAsync(string returnUrl = null)
-        {
-
-            ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
-        }
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
-        {
-            returnUrl ??= Url.Content("~/");
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            var q = Input;
-            return Page();
-        }
-
-        [HttpPost] // RequestVerificationToken
-        public JsonResult OnPostSubCut([FromBody] JsonElement json)
-        {
-            // парсим входящий json в строку
-            var jsonStr = System.Text.Json.JsonSerializer.Deserialize<object>(json.GetRawText()).ToString();
-            //строку парсим в динамик
-            dynamic data = JObject.Parse(jsonStr);
-            // с динамик в нужный тип данных
-            var SellCat = int.Parse(data.SelectedValue.Value);
-            // делакм выборку с БД и в json возвращаем
-            return new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == SellCat));
+            [Required]
+            [Display(Name = "Photo")]
+            public IFormFileCollection Files { get; set; } // бинд  коллекции загруженых файлов
         }
     }
 }
