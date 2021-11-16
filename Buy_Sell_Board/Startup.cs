@@ -49,7 +49,7 @@ namespace Buy_Sell_Board
                 .AddDefaultUI() // добавление дефолтного UI
             .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");// аякс пост запрос токен поддтвержнеие
-
+          //  services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,6 +83,7 @@ namespace Buy_Sell_Board
 
             app.UseEndpoints(endpoints =>
             {
+               // endpoints.MapControllers();
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
