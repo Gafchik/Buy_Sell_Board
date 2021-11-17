@@ -26,18 +26,18 @@
             {        // цикл  и добавление    // пропы в json приходят с первой буквой мелкой
                 $("#Rezult").append(
                     '<div class="card" style="width: 18rem;">'+
-                       //картинка
-                    '<div id="carouselExampleControls" class="carousel slide" data-ride="carousel">'+
+                       //картинка, каждой карусели нужно дать уникальный айди что бы её кнопки обращались имменно по этому айду
+                    '<div id="carouselExampleControls' + (q[i].id) +'" class="carousel slide" data-ride="carousel">'+
                     '<div class="carousel-inner" id="carousel-inner-' + (q[i].id)+'">'+
                             '<div class="carousel-item active">'+
                                 '<img class="d-block w-100" src="' + (q[i].img_url[0].path)+'" alt="Первый слайд">'+
                             '</div>'+                                                                             
                         '</div>'+
-                        '<a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">'+
+                    '<a class="carousel-control-prev" href="#carouselExampleControls' + (q[i].id) +'" role="button" data-slide="prev">'+
                             '<span class="carousel-control-prev-icon" aria-hidden="true"></span>'+
                             '<span class="sr-only">Previous</span>'+
                         '</a>'+
-                        '<a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">'+
+                    '<a class="carousel-control-next" href="#carouselExampleControls' + (q[i].id) +'" role="button" data-slide="next">'+
                             '<span class="carousel-control-next-icon" aria-hidden="true"></span>'+
                             '<span class="sr-only">Next</span>'+
                         '</a>'+
@@ -58,7 +58,7 @@
                             '<a href = "#" class= "card-link" > Ссылка карты</a>'+
                             '<a href = "#" class= "card-link" > Другая ссылка</a>'+
                        '</div>'+
-                   '</div>'
+                    '</div>'                
                 );
                 for (var j = 1; j < q[i].img_url.length; j++){
                     $("#carousel-inner-" + (q[i].id)).append(
