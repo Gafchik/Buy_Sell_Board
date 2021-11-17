@@ -1,6 +1,7 @@
 ﻿function Search() {
     $.ajax({
         type: "POST",// тип запроса пост или гет
+        async: true,// асинхронный запрос
         url: '/api/Announcements',// так выглядит путь к апи контроллеру без слова контроллер в названии
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно
@@ -17,6 +18,10 @@
         success: function (rezult) {    // ответ сервера 
             $("#Rezult").empty();// очищаем обновляемый список
             var q = Array.from(rezult); // парсим json в arr
+            if (q.length === 0) {
+                alert("Ничего не найдено");
+                return;
+            }
             for (var i = 0; i < q.length; i++)
             {        // цикл  и добавление    // пропы в json приходят с первой буквой мелкой
                 $("#Rezult").append(
@@ -71,4 +76,7 @@
             alert("НЕЕЕЕЕЕЕТ");
         }
     });
+}
+function Clear() {
+    $("#Rezult").empty();// очищаем обновляемый список
 }

@@ -29,7 +29,7 @@
 
     $.ajax({
         type: "POST",// тип апроса пост или гет
-        async: true, // мы не продолжим код пока не зделаем запрос
+        async: true, // асинхронный запрос
         url: '/Identity/Account/Manage/New_Announcement?handler=FirstCat',// только полный путь
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно
@@ -56,7 +56,7 @@
 
     $.ajax({
         type: "POST",// тип апроса пост или гет
-        async: true, // мы не продолжим код пока не зделаем запрос
+        async: true,// асинхронный запрос
         url: '/Identity/Account/Manage/New_Announcement?handler=FirstSubCat',// только полный путь
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно          
