@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Buy_Sell_Board.Data;
 using Buy_Sell_Board.Models.Announcement;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using Buy_Sell_Board.Models.API_Model;
 
 namespace Buy_Sell_Board.Controllers
 {
@@ -30,16 +33,10 @@ namespace Buy_Sell_Board.Controllers
 
         // GET: api/Announcements/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Announcement>> GetAnnouncement(int id)
+        public async Task<ActionResult<int>> GetAnnouncement(int id)
         {
-            var announcement = await _db.Announcements.FindAsync(id);
 
-            if (announcement == null)
-            {
-                return NotFound();
-            }
-
-            return announcement;
+            return 1;
         }
 
         // PUT: api/Announcements/5
@@ -73,19 +70,58 @@ namespace Buy_Sell_Board.Controllers
             return NoContent();
         }
 
-        // POST: api/Announcements
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+       
         [HttpPost]
-        public async Task<ActionResult<Announcement>> PostAnnouncement(Announcement announcement)
+        public  JsonResult PostAnnouncement([FromBody] JsonElement json)
         {
-            _db.Announcements.Add(announcement);
-            await _db.SaveChangesAsync();
+            // парсим входящий json в строку
+            var jsonStr = System.Text.Json.JsonSerializer.Deserialize<object>(json.GetRawText()).ToString();
+            //строку парсим в динамик
+            dynamic data = JObject.Parse(jsonStr);
+            // с динамик в нужный тип данных
+            string name = data.Name.Value;
+            int Cut = int.Parse(data.CategoryID.Value);
+            int SubCut = int.Parse(data.SubCategoryID.Value);
+            List<API_Announcement_Model> announcements = new List<API_Announcement_Model>();
+            if(name == string.Empty || name=="")
+            {
+                _db.Announcements.ToList().FindAll(i => i.Category_Id == Cut && i.Subcategory_Id == SubCut).
+                       ForEach(i => announcements.Add(new API_Announcement_Model
+                       {
+                           Id = i.Id,
+                           User_Name = _db.Users.ToList().Find(j => j.Id == i.User_Id).FirstName,
+                           Category = _db.Categorys.ToList().Find(j => j.Id == i.Category_Id).Name,
+                           Subcategory = _db.Subcategorys.ToList().Find(j => j.Id == i.Subcategory_Id).Name,
+                           Product_Name = i.Product_Name,
+                           Product_Model = i.Product_Model,
+                           Description = i.Description,
+                           Price = i.Price,
+                           Img_url = _db.Images.ToList().FindAll(j => j.Announcement_Id == i.Id)
 
-            return CreatedAtAction("GetAnnouncement", new { id = announcement.Id }, announcement);
-        }
+                       }));
+               
+            }
+            else
+            {
+                _db.Announcements.ToList().FindAll(i => i.Category_Id == Cut && i.Subcategory_Id == SubCut&&i.Product_Name.Contains(name)).
+                      ForEach(i => announcements.Add(new API_Announcement_Model
+                      {
+                          Id = i.Id,
+                          User_Name = _db.Users.ToList().Find(j => j.Id == i.User_Id).FirstName,
+                          Category = _db.Categorys.ToList().Find(j => j.Id == i.Category_Id).Name,
+                          Subcategory = _db.Subcategorys.ToList().Find(j => j.Id == i.Subcategory_Id).Name,
+                          Product_Name = i.Product_Name,
+                          Product_Model = i.Product_Model,
+                          Description = i.Description,
+                          Price = i.Price,
+                          Img_url = _db.Images.ToList().FindAll(j => j.Announcement_Id == i.Id)
 
-        // DELETE: api/Announcements/5
-        [HttpDelete("{id}")]
+                      }));
+            }
+            return new JsonResult(announcements);
+        }      
+            // DELETE: api/Announcements/5
+            [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAnnouncement(int id)
         {
             var announcement = await _db.Announcements.FindAsync(id);

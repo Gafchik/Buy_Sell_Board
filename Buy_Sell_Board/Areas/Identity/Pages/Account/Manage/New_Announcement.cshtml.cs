@@ -27,8 +27,8 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<ChangePasswordModel> _logger;
         public ApplicationDbContext _db;
-        public SelectList CategoryActionsList { get; set; }// категория выпадающий список
-        public SelectList SubcategoryActionsList { get; set; }// подкатегория выпадающий список
+       /* public SelectList CategoryActionsList { get; set; }// категория выпадающий список
+        public SelectList SubcategoryActionsList { get; set; }// подкатегория выпадающий список*/
         private readonly IWebHostEnvironment _appEnvironment; // интерфейс для окружения
 
 
@@ -40,14 +40,14 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
              IWebHostEnvironment appEnvironment,
             ILogger<ChangePasswordModel> logger)
         {
-            _appEnvironment = appEnvironment;
             _db = db;
+            _appEnvironment = appEnvironment;
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            Input = new InputModel();// обязательно выделять память для выпадающих списков
+            /*Input = new InputModel();// обязательно выделять память для выпадающих списков
             // конструктор выпадающих списков (Коллекция откуда брать, Имя параметра Ключ, Значение, Куда совать выбраный value)
-            CategoryActionsList = new SelectList(_db.Categorys, "Id", "Name", Input.CategorySelectedValue);
+            CategoryActionsList = new SelectList(_db.Categorys, "Id", "Name", Input.CategorySelectedValue);*/
         }
 
 
@@ -105,7 +105,7 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
                     //product.img = "~" + path;
                     _db.Images.Add(new Image
                     {
-                        Path = "~" + path,
+                        Path = path,
                         Announcement_Id = new_Announcement_Id
                     });
                 }
@@ -115,8 +115,11 @@ namespace Buy_Sell_Board.Areas.Identity.Pages.Account.Manage
             return Page();
         }
         #region Аякс ЗАпросы
-        [HttpGet] // загружает подкатегориии при первом гет запросе с помощью  аякса
-        public JsonResult OnGetFirstSubCat([FromBody] JsonElement json) => new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == 1));
+        [HttpPost] // загружает подкатегориии при первом гет запросе с помощью  аякса
+        public JsonResult OnPostFirstCat([FromBody] JsonElement json) => new JsonResult(_db.Categorys.ToList());
+
+        [HttpPost] // загружает подкатегориии при первом гет запросе с помощью  аякса
+        public JsonResult OnPostFirstSubCat([FromBody] JsonElement json) => new JsonResult(_db.Subcategorys.ToList().FindAll(i => i.Category_Id == 1));
 
         [HttpPost] // RequestVerificationToken метод обновления подкатегорий
         public JsonResult OnPostSubCut([FromBody] JsonElement json)

@@ -3,3 +3,25 @@
 }
 
 
+<div class="form-group">
+    <label>Name</label>
+    <input type="text" id="Name" class="form-control" />
+</div>
+<div class="form-group">
+    <label>cut</label>
+    <select id="CategoryActionsList" onchange="changeCat()" class="form-control"></select>
+</div>
+<div class="form-group">
+    <label>subcut</label>
+    <select id="SubcategoryActionsList" class="form-control"></select>
+</div>
+<div class="form-group">
+    <button type="submit" id="Search" onclick="Search()" class="btn btn-primary">Search</button>
+</div>
+<div id="Rezult" class="nav nav-pills flex-row">
+    
+</div>
+@section Scripts {   
+    <script src="~/js/GetFullCat.js" asp-append-version="true"></script>
+    <script src="~/js/SearchAnnouncement.js" asp-append-version="true"></script>
+}

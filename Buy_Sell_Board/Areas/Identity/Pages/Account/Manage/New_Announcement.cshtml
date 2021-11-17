@@ -14,6 +14,7 @@
 <div class="row">
     <div class="col-md-4">
         <form asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
+
             <h4>Create a new Announcement.</h4>
             <hr />
             <div class="form-group">
@@ -23,13 +24,13 @@
 
             <div class="form-group">
                 <label asp-for="Input.CategorySelectedValue"></label>
-                <select id="CategoryActionsList" asp-items="Model.CategoryActionsList" asp-for="Input.CategorySelectedValue"
-                        onchange="chg()" class="form-control"></select>
+                <select id="CategoryActionsList" asp-for="Input.CategorySelectedValue"
+                       onchange="changeCat()" class="form-control"></select>
             </div>
             <div class="form-group">
                 <label asp-for="Input.SubcategorySelectedValue"></label>
                 <select asp-for="Input.SubcategorySelectedValue"
-                     id="SubcategoryActionsList"   class="form-control"></select>
+                 id="SubcategoryActionsList"   class="form-control"></select>
             </div>
 
             <div class="form-group">
@@ -86,58 +87,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-   
-    <script>
-        function chg() {
-            $.ajax({               
-                type: "POST",// тип апроса пост или гет
-                url: '/Identity/Account/Manage/New_Announcement?handler=SubCut',// только полный путь
-                contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
-                dataType: "json",// тут понятно
-                data: JSON.stringify({//парсим в json сохраняеть в ключь значение
-                    SelectedValue : $("#CategoryActionsList").find(":selected").val()
-                }),
-                // работа с токенами ЭТО НАДО!!!
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader("XSRF-TOKEN",
-                        $('input:hidden[name="__RequestVerificationToken"]').val());
-                },
-                success: function (rezult) {    // ответ сервера                                                   
-                    $("#SubcategoryActionsList").empty();// очищаем обновляемый список
-                    var q = Array.from(rezult); // парсим json в arr
-                    for (var i = 0; i < q.length; i++) {        // цикл  и добавление опшынов               
-                        $("#SubcategoryActionsList").append(
-                            '<option value="' + q[i].id + '">' + (q[i].name) + '</option>');                          
-                    }
-                },
-                error: function () { //вункция при ошибке
-                    alert("НЕЕЕЕЕЕЕТ");
-                }
-            });
-        }
-        //загружает подкатегории при первом гет запосе
-        $.ajax({
-            type: "Get",// тип апроса пост или гет
-            url: '/Identity/Account/Manage/New_Announcement?handler=FirstSubCat',// только полный путь
-            contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
-            dataType: "json",// тут понятно          
-            // работа с токенами ЭТО НАДО!!!
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader("XSRF-TOKEN",
-                    $('input:hidden[name="__RequestVerificationToken"]').val());
-            },
-            success: function (rezult) {    // ответ сервера                                                   
-                $("#SubcategoryActionsList").empty();// очищаем обновляемый список
-                var q = Array.from(rezult); // парсим json в arr
-                for (var i = 0; i < q.length; i++) {        // цикл  и добавление опшынов               
-                    $("#SubcategoryActionsList").append(
-                        '<option value="' + q[i].id + '">' + (q[i].name) + '</option>');
-                }
-            },
-            error: function () { //вункция при ошибке
-                alert("НЕЕЕЕЕЕЕТ");
-            }
-        });
-    </script>
-    
+    <script src="~/js/GetFullCat.js" asp-append-version="true"></script>      
 }
