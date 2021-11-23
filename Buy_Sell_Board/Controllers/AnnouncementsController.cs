@@ -1,83 +1,110 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Buy_Sell_Board.Data;
-using Buy_Sell_Board.Models.Announcement;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using Buy_Sell_Board.Models.API_Model;
+using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Buy_Sell_Board.Models.Announcement;
+using Microsoft.AspNetCore.Identity;
+using Buy_Sell_Board.Models;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using Buy_Sell_Board.Areas.Identity.Pages.Account.Manage;
+using System;
+using System.Net.Http;
+using System.Net;
+using System.Diagnostics;
 
 namespace Buy_Sell_Board.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+
     public class AnnouncementsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-
-        public AnnouncementsController(ApplicationDbContext context)
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly IWebHostEnvironment _appEnvironment; // интерфейс для окружения
+                                                              // коструктор со всем добром которое выше
+        public AnnouncementsController(
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            ApplicationDbContext db,
+             IWebHostEnvironment appEnvironment)
         {
-            _db = context;
+            _db = db;
+            _appEnvironment = appEnvironment;
+            _userManager = userManager;
+            _signInManager = signInManager;
+           
         }
 
-        // GET: api/Announcements
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Announcement>>> GetAnnouncements()
+      
+        [Authorize]
+        public async Task<IActionResult> Create(New_AnnouncementModel.InputModel Input)
         {
-            return await _db.Announcements.ToListAsync();
-        }
-
-        // GET: api/Announcements/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<int>> GetAnnouncement(int id)
-        {
-
-            return 1;
-        }
-
-        // PUT: api/Announcements/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAnnouncement(int id, Announcement announcement)
-        {
-            if (id != announcement.Id)
-            {
-                return BadRequest();
-            }
-
-            _db.Entry(announcement).State = EntityState.Modified;
-
+            
             try
             {
-                await _db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AnnouncementExists(id))
+                if (ModelState.IsValid)
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                    _db.Announcements.Add(new Announcement
+                    {
+                        User_Id = _userManager.GetUserId(User),
+                        Category_Id = Input.CategorySelectedValue,
+                        Subcategory_Id = Input.SubcategorySelectedValue,
+                        Product_Name = Input.Product_Name,
+                        Product_Model = Input.Product_Model,
+                        Description = Input.Description,
+                        Price = Input.Price
+                    });
+                    _db.SaveChanges();
+                    int new_Announcement_Id = _db.Announcements.ToList().Find(i =>
+                           i.User_Id == _userManager.GetUserId(User) &&
+                           i.Category_Id == Input.CategorySelectedValue &&
+                           i.Subcategory_Id == Input.SubcategorySelectedValue &&
+                           i.Product_Name == Input.Product_Name &&
+                           i.Product_Model == Input.Product_Model &&
+                           i.Description == Input.Description &&
+                           i.Price == Input.Price).Id;
+
+                    #region file         
+                    foreach (var img in Input.Files)
+                    {
+                        // путь к папке Image
+                        string path = "/Image/" + img.FileName;
+                        // сохраняем файл в папку Files в каталоге wwwroot
+                        using (var fileStream = new FileStream(_appEnvironment.WebRootPath + path, FileMode.Create))
+                            await img.CopyToAsync(fileStream);
+                        // ~ нам говорит о том что мы попадаем в папку wwwroot
+                        //product.img = "~" + path;
+                        _db.Images.Add(new Image
+                        {
+                            Path = path,
+                            Announcement_Id = new_Announcement_Id
+                        });
+                    }
+                    #endregion
+                    await _db.SaveChangesAsync();
+                }
+                
+            }
+            catch (Exception) {}
+            return Redirect("/Identity/Account/Manage");
+
         }
 
        
-        [HttpPost]
-        public  JsonResult PostAnnouncement([FromBody] JsonElement json)
+
+        public JsonResult PostAnnouncement([FromBody] JsonElement json)
         {
-            // парсим входящий json в строку
-            var jsonStr = System.Text.Json.JsonSerializer.Deserialize<object>(json.GetRawText()).ToString();
-            //строку парсим в динамик
-            dynamic data = JObject.Parse(jsonStr);
+
+            // парсим входящий json в строку истроку парсим в динамик
+            dynamic data = JObject.Parse(JsonSerializer.Deserialize<object>(json.GetRawText()).ToString());
             // с динамик в нужный тип данных
             string name = data.Name.Value;
             int Cut = int.Parse(data.CategoryID.Value);
@@ -120,25 +147,17 @@ namespace Buy_Sell_Board.Controllers
             }
             return new JsonResult(announcements);
         }      
-            // DELETE: api/Announcements/5
-            [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAnnouncement(int id)
-        {
-            var announcement = await _db.Announcements.FindAsync(id);
-            if (announcement == null)
-            {
-                return NotFound();
-            }
+           
+        
+      
 
-            _db.Announcements.Remove(announcement);
-            await _db.SaveChangesAsync();
+       
+        
+        
+        #region Аякс ЗАпросы
+       
+        #endregion
 
-            return NoContent();
-        }
 
-        private bool AnnouncementExists(int id)
-        {
-            return _db.Announcements.Any(e => e.Id == id);
-        }
     }
 }

@@ -2,7 +2,7 @@
     $.ajax({
         type: "POST",// тип запроса пост или гет
         async: true,// асинхронный запрос
-        url: '/api/Announcements',// так выглядит путь к апи контроллеру без слова контроллер в названии
+        url: '/Announcements/PostAnnouncement',// так выглядит путь к апи контроллеру без слова контроллер в названии
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно
         data: JSON.stringify({//парсим в json сохраняеть в ключь значение

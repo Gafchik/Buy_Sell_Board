@@ -1,7 +1,7 @@
 ﻿function changeCat() {
     $.ajax({
         type: "POST",// тип апроса пост или гет
-        url: '/Identity/Account/Manage/New_Announcement?handler=SubCut',// только полный путь
+        url: '/Сategory/OnPostSubCat',// так выглядит путь к апи контроллеру без слова контроллер в названии
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно
         data: JSON.stringify({//парсим в json сохраняеть в ключь значение
@@ -29,8 +29,8 @@
 
     $.ajax({
         type: "POST",// тип апроса пост или гет
-        async: true, // асинхронный запрос
-        url: '/Identity/Account/Manage/New_Announcement?handler=FirstCat',// только полный путь
+        async: true, // асинхронный запрос     
+        url: '/Сategory/OnPostFirstCat',
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно
         // работа с токенами ЭТО НАДО!!!
@@ -56,8 +56,8 @@
 
     $.ajax({
         type: "POST",// тип апроса пост или гет
-        async: true,// асинхронный запрос
-        url: '/Identity/Account/Manage/New_Announcement?handler=FirstSubCat',// только полный путь
+        async: true,// асинхронный запрос   
+        url: '/Сategory/OnPostFirstSubCat',
         contentType: "application/json; charset=utf-8", // тип передаваемого контента и кодировка
         dataType: "json",// тут понятно          
         // работа с токенами ЭТО НАДО!!!
